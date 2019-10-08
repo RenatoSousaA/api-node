@@ -1,0 +1,1 @@
+console.log(`Meu ambiente: ${process.env.NODE_ENV}`) // Pegar variavel de ambiente
