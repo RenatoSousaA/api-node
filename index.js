@@ -8,10 +8,44 @@ const firebase = require('firebase');
 const firebaseConfig = require('./config/firebase');
 const firebaseApp = firebase.initializeApp(firebaseConfig);
 const db = firebaseApp.firestore();
+
+// FOLDERS
+const createToken = require('./utils/createToken');
+const verifyJWT = require('./middlewares/verifyToken');
+
+// Body Parser
+const bodyParser = require('body-parser');
+
 // APP
 const app = express();
 
-app.get('/users/:id', (req, res, next) => {
+app.use(bodyParser.json());
+
+app.post('/auth', (req, res, next) => {
+    db.collection('users')
+        .where('email', '==', req.body.email)
+        .where('password', '==', req.body.password)
+        .get()
+        .then(users => {
+            if (users.docs.length === 0) {
+                return res.status(401).send({
+                    message: 'Unauthorized'
+                })
+            }
+            // const user = users.docs.map(user => ({
+            //     id: user.id,
+            //     ...user.data()
+            // }));
+            const [{ id }] = users.docs;
+            res.json({ token: createToken({ id }) })
+        })
+        .catch(err => {
+            res.sendStatus(500);
+            console.log(err);
+        })
+})
+
+app.get('/users/:id', verifyJWT, (req, res, next) => {
     const id = req.params.id;
     db.collection('users').doc(id).get()
         .then(user => {
@@ -30,11 +64,10 @@ app.get('/users/:id', (req, res, next) => {
 app.get('/users', (req, res, next) => {
     db.collection('users').get()
         .then(users => {
-            let allUser = [];
-            users.forEach(user => {
-                allUser.push(user.data());
-            });
-            res.json(allUser);
+            res.json(users.docs.map(user => ({
+                id: user.id,
+                ...user.data()
+            })));
         })
         .catch(err => {
             res.sendStatus(500);
