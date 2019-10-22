@@ -4,10 +4,10 @@
 const express = require('express');
 
 // Firebase
-const firebase = require('firebase');
-const firebaseConfig = require('./config/firebase');
-const firebaseApp = firebase.initializeApp(firebaseConfig);
-const db = firebaseApp.firestore();
+// const firebase = require('firebase');
+// const firebaseConfig = require('./config/firebase');
+// const firebaseApp = firebase.initializeApp(firebaseConfig);
+// const db = firebaseApp.firestore();
 
 // FOLDERS
 const createToken = require('./utils/createToken');
@@ -19,9 +19,11 @@ const bodyParser = require('body-parser');
 // APP
 const app = express();
 
+const UsersController = require('./controllers/Users');
+
 app.use(bodyParser.json());
 
-app.post('/auth', (req, res, next) => {
+app.post('/auth', (req, res) => {
     db.collection('users')
         .where('email', '==', req.body.email)
         .where('password', '==', req.body.password)
@@ -45,21 +47,8 @@ app.post('/auth', (req, res, next) => {
         })
 })
 
-app.get('/users/:id', verifyJWT, (req, res, next) => {
-    const id = req.params.id;
-    db.collection('users').doc(id).get()
-        .then(user => {
-            if (!user.exists) {
-                return res.sendStatus(204)
-            }
 
-            res.json(user.data())
-        })
-        .catch(err => {
-            res.sendStatus(500);
-            console.log(err);
-        })
-})
+app.get('/users/:id', /* verifyJWT, */ UsersController.get);
 
 app.get('/users', (req, res, next) => {
     db.collection('users').get()
