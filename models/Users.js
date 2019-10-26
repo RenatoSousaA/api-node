@@ -18,6 +18,14 @@ class Users extends BaseModel {
             .collection('users')
             .get()
     }
+
+    put(id, data) {
+        return this.db
+            .collection('users')
+            .doc(id)
+            .set(data);
+    }
+
 }
 
 module.exports = Users;

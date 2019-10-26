@@ -45,6 +45,23 @@ class Users {
                 console.log(err);
             })
     }
+
+    static update(req, res) {
+        const id = req.params.id;        
+        const data = {
+            'email': req.body.email,
+            'password': req.body.password,
+            'name': req.body.name
+        }
+        userModel.put(id, data)
+            .then(data => {
+                res.sendStatus(200);
+            })
+            .catch(err => {
+                res.sendStatus(500);
+                console.log(err);
+            })
+    }
 }
 
 module.exports = Users;
